@@ -16,8 +16,8 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.19.x
-      - name: Make all
-        run: make all
+      - name: Make dist
+        run: make dist
       - name: Upload release binaries
         uses: alexellis/upload-assets@0.4.0
         env:

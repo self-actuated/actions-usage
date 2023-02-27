@@ -3,7 +3,7 @@ export GO111MODULE=on
 export LDFLAGS="-s -w"
 
 .PHONY: all
-all: gofmt test build dist hash
+all: gofmt test build dist
 
 .PHONY: build
 build:
