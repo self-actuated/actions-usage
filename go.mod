@@ -1,4 +1,4 @@
-module github.com/self-actuated/actions-stats
+module github.com/self-actuated/actions-usage
 
 go 1.19
 

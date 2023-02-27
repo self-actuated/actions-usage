@@ -23,4 +23,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          asset_paths: '["./bin/gha-usage*"]'
+          asset_paths: '["./bin/actions-usage*"]'
