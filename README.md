@@ -8,7 +8,7 @@ Includes total runtime of all workflow runs and workflow jobs, including where t
 
 Or create a [Classic Token](https://github.com/settings/tokens) with: repo and admin:org and save it to ~/pat.txt. Create a short lived duration for good measure.
 
-Download a binary from the [releases page](https://github.com/self-actuated/actions-usage/releases/tag/v0.0.1)
+Download a binary from the [releases page](https://github.com/self-actuated/actions-usage/releases)
 
 Or clone the source and run it:
 
