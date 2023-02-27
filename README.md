@@ -15,5 +15,9 @@ go run . --org actuated-samples --token $(cat ~/pat.txt)
 ## Output
 
 ```bash
-Total usage: 72h40m24s
+Fetching last 30 days of data
+Total repos: 25
+Total workflow runs: 245
+Total workflow jobs: 255
+Total usage: 9h10m17s
 ```

@@ -47,7 +47,8 @@ func main() {
 		totalRuns int
 		totalJobs int
 	)
-	fmt.Printf("Fetching last %d days of data\n", since)
+
+	fmt.Printf("Fetching last %d days of data (created>=%s)\n", since, created.Format("2006-01-02"))
 
 	var allRepos []*github.Repository
 	ctx := context.Background()
