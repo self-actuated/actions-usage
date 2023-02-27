@@ -43,6 +43,10 @@ func main() {
 	format := "2006-01-02"
 	createdQuery := ">=" + created.Format(format)
 
+	var (
+		totalRuns int
+		totalJobs int
+	)
 	fmt.Printf("Fetching last %d days of data\n", since)
 
 	var allRepos []*github.Repository
@@ -104,14 +108,14 @@ func main() {
 
 			page = res.NextPage
 		}
+		totalRuns += len(workflowRuns)
 
 		log.Printf("Found %d workflow runs for %s/%s", len(workflowRuns), orgName, repo.GetName())
 
-		allJobs := []*github.WorkflowJob{}
 		for _, run := range workflowRuns {
 			log.Printf("Fetching jobs for: run ID: %d, startedAt: %s, conclusion: %s", run.GetID(), run.GetRunStartedAt().Format("2006-01-02 15:04:05"), run.GetConclusion())
+			workflowJobs := []*github.WorkflowJob{}
 
-			runTotal := 0
 			page := 0
 			for {
 				log.Printf("Fetching jobs for: %d, page %d", run.GetID(), page)
@@ -123,9 +127,8 @@ func main() {
 					log.Fatal(err)
 				}
 
-				allJobs = append(allJobs, jobs.Jobs...)
+				workflowJobs = append(workflowJobs, jobs.Jobs...)
 
-				runTotal += len(jobs.Jobs)
 				if len(jobs.Jobs) == 0 {
 					break
 				}
@@ -136,17 +139,21 @@ func main() {
 				page = res.NextPage
 			}
 
-			log.Printf("%d jobs for workflow run: %d", runTotal, run.GetID())
-		}
+			totalJobs += len(workflowJobs)
+			log.Printf("%d jobs for workflow run: %d", len(workflowJobs), run.GetID())
+			for _, job := range workflowJobs {
 
-		for _, job := range allJobs {
-
-			dur := job.GetCompletedAt().Time.Sub(job.GetStartedAt().Time)
-			allUsage += dur
-			log.Printf("Job: %d [%s - %s] (%s): %s", job.GetID(), job.GetStartedAt().Format("2006-01-02 15:04:05"), job.GetCompletedAt().Format("2006-01-02 15:04:05"), humanDuration(dur), job.GetConclusion())
+				dur := job.GetCompletedAt().Time.Sub(job.GetStartedAt().Time)
+				allUsage += dur
+				log.Printf("Job: %d [%s - %s] (%s): %s",
+					job.GetID(), job.GetStartedAt().Format("2006-01-02 15:04:05"), job.GetCompletedAt().Format("2006-01-02 15:04:05"), humanDuration(dur), job.GetConclusion())
+			}
 		}
 	}
 
+	fmt.Printf("Total repos: %d\n", len(allRepos))
+	fmt.Printf("Total workflow runs: %d\n", totalRuns)
+	fmt.Printf("Total workflow jobs: %d\n", totalJobs)
 	fmt.Printf("Total usage: %s\n", allUsage.String())
 }
 
