@@ -159,9 +159,9 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Total repos: %d", len(allRepos))
-	fmt.Printf("Total private repos: %d", totalPrivate)
-	fmt.Printf("Total public repos: %d", totalPublic)
+	fmt.Printf("Total repos: %d\n", len(allRepos))
+	fmt.Printf("Total private repos: %d\n", totalPrivate)
+	fmt.Printf("Total public repos: %d\n", totalPublic)
 	fmt.Println()
 	fmt.Printf("Total workflow runs: %d\n", totalRuns)
 	fmt.Printf("Total workflow jobs: %d\n", totalJobs)

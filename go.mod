@@ -1,4 +1,4 @@
-module github.com/alexellis/gha-usage
+module github.com/self-actuated/actions-stats
 
 go 1.19
 
