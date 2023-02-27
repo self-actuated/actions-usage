@@ -155,7 +155,8 @@ func main() {
 	fmt.Printf("Total repos: %d\n", len(allRepos))
 	fmt.Printf("Total workflow runs: %d\n", totalRuns)
 	fmt.Printf("Total workflow jobs: %d\n", totalJobs)
-	fmt.Printf("Total usage: %s\n", allUsage.String())
+	mins := fmt.Sprintf("%.0f mins", allUsage.Minutes())
+	fmt.Printf("Total usage: %s (%s)\n", allUsage.String(), mins)
 }
 
 // types.HumanDuration fixes a long string for a value < 1s
