@@ -44,8 +44,10 @@ func main() {
 	createdQuery := ">=" + created.Format(format)
 
 	var (
-		totalRuns int
-		totalJobs int
+		totalRuns    int
+		totalJobs    int
+		totalPrivate int
+		totalPublic  int
 	)
 
 	fmt.Printf("Fetching last %d days of data (created>=%s)\n", since, created.Format("2006-01-02"))
@@ -84,6 +86,11 @@ func main() {
 
 	for _, repo := range allRepos {
 		log.Printf("Found: %s", repo.GetFullName())
+		if repo.GetPrivate() {
+			totalPrivate++
+		} else {
+			totalPublic++
+		}
 
 		workflowRuns := []*github.WorkflowRun{}
 		page := 0
@@ -152,7 +159,10 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Total repos: %d\n", len(allRepos))
+	fmt.Printf("Total repos: %d", len(allRepos))
+	fmt.Printf("Total private repos: %d", totalPrivate)
+	fmt.Printf("Total public repos: %d", totalPublic)
+	fmt.Println()
 	fmt.Printf("Total workflow runs: %d\n", totalRuns)
 	fmt.Printf("Total workflow jobs: %d\n", totalJobs)
 	mins := fmt.Sprintf("%.0f mins", allUsage.Minutes())
