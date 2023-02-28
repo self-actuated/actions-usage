@@ -21,18 +21,22 @@ If your team has hundreds of repositories, or thousands of builds per month, the
 
 Or create a [Classic Token](https://github.com/settings/tokens) with: repo and admin:org and save it to ~/pat.txt. Create a short lived duration for good measure.
 
-Download a binary from the [releases page](https://github.com/self-actuated/actions-usage/releases/tag/v0.0.1)
+Download a binary from the [releases page](https://github.com/self-actuated/actions-usage/releases)
 
 ## Output
 
 ```bash
-./actions-usage --org actuated-samples --token $(cat ~/pat.txt)
+./actions-usage --org openfaas --token $(cat ~/pat.txt)
 
-Fetching last 30 days of data
-Total repos: 25
-Total workflow runs: 245
-Total workflow jobs: 255
-Total usage: 9h10m17s
+Fetching last 30 days of data (created>=2023-01-29)
+
+Total repos: 45
+Total private repos: 0
+Total public repos: 45
+
+Total workflow runs: 95
+Total workflow jobs: 113
+Total usage: 6h16m16s (376 mins)
 ```
 
 ## Development
