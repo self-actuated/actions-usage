@@ -1,6 +1,6 @@
 ## actions-usage
 
-Find your GitHub Actions usage across a given organisation.
+Find your GitHub Actions usage across a given organisation (or user account).
 
 Includes total runtime of all workflow runs and workflow jobs, including where the jobs were run within inclusive, free, billed minutes, or on self-hosted runners.
 
@@ -19,6 +19,8 @@ If your team has hundreds of repositories, or thousands of builds per month, the
 
 ## Usage
 
+This tool is primarily designed for use with an organisation, however you can also use it with a regular user account by changing the `--org` flag to `--user`.
+
 Or create a [Classic Token](https://github.com/settings/tokens) with: repo and admin:org and save it to ~/pat.txt. Create a short lived duration for good measure.
 
 Download a binary from the [releases page](https://github.com/self-actuated/actions-usage/releases)
@@ -26,7 +28,7 @@ Download a binary from the [releases page](https://github.com/self-actuated/acti
 ## Output
 
 ```bash
-./actions-usage --org openfaas --token $(cat ~/pat.txt)
+actions-usage --org openfaas --token $(cat ~/pat.txt)
 
 Fetching last 30 days of data (created>=2023-01-29)
 
@@ -37,6 +39,12 @@ Total public repos: 45
 Total workflow runs: 95
 Total workflow jobs: 113
 Total usage: 6h16m16s (376 mins)
+```
+
+As a user:
+
+```bash
+actions-usage --user alexellis --token $(cat ~/pat.txt)
 ```
 
 ## Development
