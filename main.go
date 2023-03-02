@@ -17,11 +17,12 @@ import (
 func main() {
 
 	var (
-		orgName, token string
-		since          int
+		orgName, userName, token string
+		since                    int
 	)
 
 	flag.StringVar(&orgName, "org", "", "Organization name")
+	flag.StringVar(&userName, "user", "", "User name")
 	flag.StringVar(&token, "token", "", "GitHub token")
 	flag.IntVar(&since, "since", 30, "Since when to fetch the data (in days)")
 
@@ -31,11 +32,11 @@ func main() {
 		&oauth2.Token{AccessToken: token},
 	))
 
-	if orgName == "" {
-		log.Fatal("Organization name is required")
-	}
-	if token == "" {
-		log.Fatal("GitHub token is required")
+	switch {
+	case orgName == "" && userName == "":
+		log.Fatal("Organization name or username is required")
+	case orgName != "" && userName != "":
+		log.Fatal("Only org or username must be specified at the same time")
 	}
 
 	client := github.NewClient(auth)
@@ -52,13 +53,24 @@ func main() {
 
 	fmt.Printf("Fetching last %d days of data (created>=%s)\n", since, created.Format("2006-01-02"))
 
-	var allRepos []*github.Repository
+	var repos, allRepos []*github.Repository
+	var res *github.Response
+	var err error
 	ctx := context.Background()
 	page := 0
 	for {
-		opts := &github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{Page: page, PerPage: 100}, Type: "all"}
 		log.Printf("Fetching repos %s page %d", orgName, page)
-		repos, res, err := client.Repositories.ListByOrg(ctx, orgName, opts)
+		if orgName != "" {
+			opts := &github.RepositoryListByOrgOptions{ListOptions: github.ListOptions{Page: page, PerPage: 100}, Type: "all"}
+			log.Printf("Fetching repos %s page %d", orgName, page)
+			repos, res, err = client.Repositories.ListByOrg(ctx, orgName, opts)
+		}
+
+		if userName != "" {
+			opts := &github.RepositoryListOptions{ListOptions: github.ListOptions{Page: page, PerPage: 100}, Type: "all"}
+			repos, res, err = client.Repositories.List(ctx, userName, opts)
+		}
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -98,8 +110,19 @@ func main() {
 
 			opts := &github.ListWorkflowRunsOptions{Created: createdQuery, ListOptions: github.ListOptions{Page: page, PerPage: 100}}
 
+			var runs *github.WorkflowRuns
 			log.Printf("Listing workflow runs for: %s", repo.GetFullName())
-			runs, res, err := client.Actions.ListRepositoryWorkflowRuns(ctx, orgName, repo.GetName(), opts)
+			if orgName != "" {
+				runs, res, err = client.Actions.ListRepositoryWorkflowRuns(ctx, orgName, repo.GetName(), opts)
+			}
+			if userName != "" {
+				realOwner := userName
+				// if user is a member of repository
+				if userName != *repo.Owner.Login {
+					realOwner = *repo.Owner.Login
+				}
+				runs, res, err = client.Actions.ListRepositoryWorkflowRuns(ctx, realOwner, repo.GetName(), opts)
+			}
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -118,7 +141,14 @@ func main() {
 		}
 		totalRuns += len(workflowRuns)
 
-		log.Printf("Found %d workflow runs for %s/%s", len(workflowRuns), orgName, repo.GetName())
+		var entity string
+		if orgName != "" {
+			entity = orgName
+		}
+		if userName != "" {
+			entity = userName
+		}
+		log.Printf("Found %d workflow runs for %s/%s", len(workflowRuns), entity, repo.GetName())
 
 		for _, run := range workflowRuns {
 			log.Printf("Fetching jobs for: run ID: %d, startedAt: %s, conclusion: %s", run.GetID(), run.GetRunStartedAt().Format("2006-01-02 15:04:05"), run.GetConclusion())
@@ -127,7 +157,7 @@ func main() {
 			page := 0
 			for {
 				log.Printf("Fetching jobs for: %d, page %d", run.GetID(), page)
-				jobs, res, err := client.Actions.ListWorkflowJobs(ctx, orgName,
+				jobs, res, err := client.Actions.ListWorkflowJobs(ctx, entity,
 					repo.GetName(),
 					run.GetID(),
 					&github.ListWorkflowJobsOptions{Filter: "all", ListOptions: github.ListOptions{Page: page, PerPage: 100}})
