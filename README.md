@@ -1,6 +1,6 @@
 ## actions-usage
 
-Find your GitHub Actions usage across a given organisation (or user account).
+Find your GitHub Actions usage across a given organisation or user account.
 
 ![Example console output](https://pbs.twimg.com/media/FrbYxbwWwAMvQZN?format=jpg&name=large)
 > Example console output for the [inlets OSS repos](https://github.com/inlets)
@@ -67,11 +67,11 @@ go run . --org actuated-samples --token $(cat ~/pat.txt)
 
 ## Author
 
-This tool was created as part of [actuated.dev](https://actuated.dev) by OpenFaaS Ltd.
+This tool was created as part of [actuated](https://actuated.dev) - secure, fast BYO runners for GitHub Actions. actuated is developed by [OpenFaaS Ltd](https://openfaas.com).
+
+Within the dashboard, customers get built-in charts for overall usage on a GitHub organisation and a repo-level break down of passing/failing builds and total time spent in each.
 
 [![Insights for customers](https://pbs.twimg.com/media/FqnJ8rLXgAEnJDZ?format=png&name=medium)](https://twitter.com/alexellisuk/status/1633059062639108096/)
-
-> [Actuated.dev](https://actuated.dev) has built-in charts for overall usage on a GitHub organisation and a repo-level break down of passing/failing builds and total time spent in each.
 
 ## License
 
