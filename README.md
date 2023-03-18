@@ -2,12 +2,15 @@
 
 Find your GitHub Actions usage across a given organisation (or user account).
 
+![Example console output](https://pbs.twimg.com/media/FrbYxbwWwAMvQZN?format=jpg&name=large)
+> Example console output for the [inlets OSS repos](https://github.com/inlets)
+
 Includes total runtime of all workflow runs and workflow jobs, including where the jobs were run within inclusive, free, billed minutes, or on self-hosted runners.
 
 This data is not available within a single endpoint in GitHub's REST or GraphQL APIs, so many different API calls are necessary to build up the usage statistics.
 
 ```
-repos = ListRepos(organisation)
+repos = ListRepos(organisation || user)
    for each Repo
        ListWorkflowRuns(Repo)
           for each WorkflowRun
