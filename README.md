@@ -26,7 +26,15 @@ This tool is primarily designed for use with an organisation, however you can al
 
 Or create a [Classic Token](https://github.com/settings/tokens) with: repo and admin:org and save it to ~/pat.txt. Create a short lived duration for good measure.
 
-Download a binary from the [releases page](https://github.com/self-actuated/actions-usage/releases)
+We recommend using arkade to install this CLI, however you can also download a binary from the [releases page](https://github.com/self-actuated/actions-usage/releases).
+
+```sh
+# sudo is optional for this step
+curl -SLs https://get.arkade.dev | sudo sh
+
+arkade get actions-usage
+sudo mv $HOME/.arkade/bin/actions-usage /usr/local/bin/
+```
 
 ## Output
 
