@@ -62,6 +62,20 @@ As a user:
 actions-usage --user alexellis --token-file ~/pat.txt
 ```
 
+Get a punch-card of which days have the most commits by adding the `-punch-card` flag:
+
+```
+Day            Builds
+Monday         0
+Tuesday        0
+Wednesday      0
+Thursday       0
+Friday         4
+Saturday       0
+Sunday         0
+Total          4
+```
+
 ## Development
 
 All changes must be proposed with an Issue prior to working on them or sending a PR. Commits must have a sign-off message, i.e. `git commit -s`
