@@ -70,14 +70,14 @@ Get a punch-card of which days have the most commits by adding the `-punch-card`
 
 ```
 Day            Builds
-Monday         0
-Tuesday        0
-Wednesday      0
-Thursday       0
-Friday         4
-Saturday       0
-Sunday         0
-Total          4
+Monday         7
+Tuesday        22
+Wednesday      43
+Thursday       49
+Friday         19
+Saturday       4
+Sunday         12
+Total          156
 ```
 
 ## Development
