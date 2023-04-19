@@ -2,6 +2,10 @@
 
 Find your GitHub Actions usage across a given organisation or user account.
 
+[![build](https://github.com/self-actuated/actions-usage/actions/workflows/build.yml/badge.svg)](https://github.com/self-actuated/actions-usage/actions/workflows/build.yml)
+![License](https://img.shields.io/github/license/self-actuated/actions-usage)
+![Total downloads](https://img.shields.io/github/downloads/self-actuated/actions-usage/total)
+
 ![Example console output](https://pbs.twimg.com/media/FrbYxbwWwAMvQZN?format=jpg&name=large)
 > Example console output for the [inlets OSS repos](https://github.com/inlets)
 
