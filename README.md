@@ -80,6 +80,29 @@ Sunday         12
 Total          156
 ```
 
+You can use the `-by-repo` flag to get a detailed breakdown of usage by GitHub repository - sorted by number of builds.
+
+```
+Longest build: 4h12m40s
+Average build time: 2m37s
+
+Repo                                      Builds         Success        Failure        Cancelled      Skipped        Total          Average        Longest
+actuated-samples/k3sup-matrix-test        144            140            1              3              0              1h31m33s       38s            2m0s
+actuated-samples/specs                    36             25             0              11             0              6m15s          10s            25s
+actuated-samples/minty                    24             6              18             0              0              2m32s          6s             10s
+actuated-samples/debug-ssh                17             12             1              4              0              9h12m33s       32m30s         4h12m40s
+actuated-samples/matrix-build             14             14             0              0              0              31s            2s             4s
+actuated-samples/dns                      9              3              0              6              0              40s            4s             18s
+actuated-samples/ebpf                     5              2              3              0              0              39s            8s             9s
+actuated-samples/cilium-test              4              1              3              0              0              9m16s          2m19s          6m49s
+actuated-samples/openfaas-helm            4              2              2              0              0              3m42s          56s            1m54s
+actuated-samples/ivan-ssl                 3              3              0              0              0              13s            4s             5s
+actuated-samples/kind-tester              1              0              1              0              0              14m56s         14m56s         14m56s
+actuated-samples/kernel-builder-linux-6.0 1              1              0              0              0              1m16s          1m16s          1m16s
+
+Total usage: 11h24m6s (684 mins)
+```
+
 ## Development
 
 All changes must be proposed with an Issue prior to working on them or sending a PR. Commits must have a sign-off message, i.e. `git commit -s`
