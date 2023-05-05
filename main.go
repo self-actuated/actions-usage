@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -16,18 +17,28 @@ import (
 	"golang.org/x/oauth2"
 )
 
+type RepoSummary struct {
+	Counts       map[string]int
+	Jobs         int
+	TotalTime    time.Duration
+	LongestBuild time.Duration
+	Name         string
+}
+
 func main() {
 
 	var (
 		orgName, userName, token, tokenFile string
 		days                                int
-		punchCard                           bool
+		punchCard, byRepo                   bool
 	)
 
 	flag.StringVar(&orgName, "org", "", "Organization name")
 	flag.StringVar(&userName, "user", "", "User name")
 	flag.StringVar(&token, "token", "", "GitHub token")
 	flag.StringVar(&tokenFile, "token-file", "", "Path to the file containing the GitHub token")
+
+	flag.BoolVar(&byRepo, "by-repo", false, "Show breakdown by repository")
 
 	flag.BoolVar(&punchCard, "punch-card", false, "Show punch card with breakdown of builds per day")
 	flag.IntVar(&days, "days", 30, "How many days of data to query from the GitHub API")
@@ -67,7 +78,10 @@ func main() {
 		actors       map[string]bool
 		conclusion   map[string]int
 		buildsPerDay map[string]int
+		repoSummary  map[string]*RepoSummary
 	)
+
+	repoSummary = make(map[string]*RepoSummary)
 
 	actors = make(map[string]bool)
 	buildsPerDay = map[string]int{
@@ -158,6 +172,15 @@ func main() {
 				}
 				runs, res, err = client.Actions.ListRepositoryWorkflowRuns(ctx, realOwner, repo.GetName(), opts)
 			}
+
+			if _, ok := repoSummary[repo.GetFullName()]; !ok {
+				repoSummary[repo.GetFullName()] = &RepoSummary{
+					Counts:    make(map[string]int),
+					TotalTime: time.Second * 0,
+					Name:      repo.GetFullName(),
+				}
+			}
+
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -174,16 +197,17 @@ func main() {
 
 			page = res.NextPage
 		}
+
 		totalRuns += len(workflowRuns)
 
-		var entity string
+		var owner string
 		if orgName != "" {
-			entity = orgName
+			owner = orgName
 		}
 		if userName != "" {
-			entity = userName
+			owner = userName
 		}
-		log.Printf("Found %d workflow runs for %s/%s", len(workflowRuns), entity, repo.GetName())
+		log.Printf("Found %d workflow runs for %s/%s", len(workflowRuns), owner, repo.GetName())
 
 		for _, run := range workflowRuns {
 			log.Printf("Fetching jobs for: run ID: %d, startedAt: %s, conclusion: %s", run.GetID(), run.GetRunStartedAt().Format("2006-01-02 15:04:05"), run.GetConclusion())
@@ -195,7 +219,8 @@ func main() {
 			page := 0
 			for {
 				log.Printf("Fetching jobs for: %d, page %d", run.GetID(), page)
-				jobs, res, err := client.Actions.ListWorkflowJobs(ctx, entity,
+				jobs, res, err := client.Actions.ListWorkflowJobs(ctx,
+					owner,
 					repo.GetName(),
 					run.GetID(),
 					&github.ListWorkflowJobsOptions{Filter: "all", ListOptions: github.ListOptions{Page: page, PerPage: 100}})
@@ -203,17 +228,27 @@ func main() {
 					log.Fatal(err)
 				}
 
+				summary := repoSummary[owner+"/"+repo.GetName()]
+
 				for _, job := range jobs.Jobs {
 					dur := job.GetCompletedAt().Time.Sub(job.GetStartedAt().Time)
 					if dur > longestBuild {
 						longestBuild = dur
 					}
+					if dur > summary.LongestBuild {
+						summary.LongestBuild = dur
+					}
+
+					summary.TotalTime += dur
 
 					if _, ok := conclusion[job.GetConclusion()]; !ok {
 						conclusion[job.GetConclusion()] = 0
 					}
 
 					conclusion[job.GetConclusion()]++
+
+					summary.Counts[job.GetConclusion()]++
+					summary.Jobs++
 				}
 
 				workflowJobs = append(workflowJobs, jobs.Jobs...)
@@ -288,8 +323,49 @@ func main() {
 
 			w.Flush()
 		}
-
 	}
+
+	if byRepo {
+		fmt.Println()
+		w := tabwriter.NewWriter(os.Stdout, 15, 4, 1, ' ', tabwriter.TabIndent)
+		fmt.Fprintln(w, "Repo\tBuilds\tSuccess\tFailure\tCancelled\tSkipped\tTotal\tAverage\tLongest")
+
+		summaries := []*RepoSummary{}
+		for _, summary := range repoSummary {
+			summaries = append(summaries, summary)
+		}
+
+		sort.Slice(summaries, func(i, j int) bool {
+			if summaries[i].Jobs == summaries[j].Jobs {
+				return summaries[i].TotalTime > summaries[j].TotalTime
+			}
+
+			return summaries[i].Jobs > summaries[j].Jobs
+		})
+
+		for _, summary := range summaries {
+			repoName := summary.Name
+
+			avg := time.Duration(0)
+			if summary.Jobs > 0 {
+				avg = summary.TotalTime / time.Duration(summary.Jobs)
+
+				fmt.Fprintf(w, "%s\t%d\t%d\t%d\t%d\t%d\t%s\t%s\t%s\n",
+					repoName,
+					summary.Jobs,
+					summary.Counts["success"],
+					summary.Counts["failure"],
+					summary.Counts["cancelled"],
+					summary.Counts["skipped"],
+					summary.TotalTime.Round(time.Second),
+					avg.Round(time.Second),
+					summary.LongestBuild.Round(time.Second))
+			}
+		}
+
+		w.Flush()
+	}
+
 	fmt.Println()
 
 	mins := fmt.Sprintf("%.0f mins", allUsage.Minutes())
