@@ -231,15 +231,17 @@ func main() {
 				summary := repoSummary[owner+"/"+repo.GetName()]
 
 				for _, job := range jobs.Jobs {
-					dur := job.GetCompletedAt().Time.Sub(job.GetStartedAt().Time)
-					if dur > longestBuild {
-						longestBuild = dur
-					}
-					if dur > summary.LongestBuild {
-						summary.LongestBuild = dur
-					}
+					if !job.GetCompletedAt().IsZero() {
+						dur := job.GetCompletedAt().Time.Sub(job.GetStartedAt().Time)
+						if dur > longestBuild {
+							longestBuild = dur
+						}
+						if dur > summary.LongestBuild {
+							summary.LongestBuild = dur
+						}
 
-					summary.TotalTime += dur
+						summary.TotalTime += dur
+					}
 
 					if _, ok := conclusion[job.GetConclusion()]; !ok {
 						conclusion[job.GetConclusion()] = 0
