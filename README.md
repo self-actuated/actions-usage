@@ -58,7 +58,7 @@ If you have either a large or a busy repo - you may want to run with `--days 14`
 ```bash
 curl -L \
   -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer $(cat ~/ae-pat.txt)"\
+  -H "Authorization: Bearer $(cat ~/pat.txt)"\
   -H "X-GitHub-Api-Version: 2022-11-28" \
   https://api.github.com/rate_limit
 ```
