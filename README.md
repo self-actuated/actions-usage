@@ -63,6 +63,8 @@ curl -L \
   https://api.github.com/rate_limit
 ```
 
+> If you're still unable to get the tool to run within your rate-limit, even with 7 days of data, the billing summary from your organisation for actions minutes and what plan you're on could also work, but is quite coarse in comparison.
+
 ## Output
 
 Example output:
