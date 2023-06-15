@@ -46,7 +46,7 @@ We sometimes ask users to run this tool before a call with the [actuated team](h
 
 ```bash
 actions-usage \
- --by-repo
+ --by-repo \
  --punch-card \
  --org openfaas \
  --token-file ~/pat.txt \
