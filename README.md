@@ -128,6 +128,22 @@ actuated-samples/kernel-builder-linux-6.0 1              1              0       
 Total usage: 11h24m6s (684 mins)
 ```
 
+You can filter the output by specifying repositories to include with the `-include` and/or `-include-file` option.
+
+```bash
+actions-usage ... -include actuated-samples/ebpf,actuated-samples/dns
+
+---
+Longest build: 18s
+Average build time: 6s
+
+Repo                                      Builds         Success        Failure        Cancelled      Skipped        Total          Average        Longest
+actuated-samples/dns                      9              3              0              6              0              40s            4s             18s
+actuated-samples/ebpf                     5              2              3              0              0              39s            8s             9s
+
+Total usage: 1m19s (1 min)
+```
+
 ## Development
 
 All changes must be proposed with an Issue prior to working on them or sending a PR. Commits must have a sign-off message, i.e. `git commit -s`
