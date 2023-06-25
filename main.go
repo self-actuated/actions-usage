@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"sort"
@@ -26,17 +27,18 @@ type RepoSummary struct {
 }
 
 func main() {
-
 	var (
-		orgName, userName, token, tokenFile string
-		days                                int
-		punchCard, byRepo                   bool
+		orgName, userName, token, tokenFile, repoList, reposFile string
+		days                                                     int
+		punchCard, byRepo                                        bool
 	)
 
 	flag.StringVar(&orgName, "org", "", "Organization name")
 	flag.StringVar(&userName, "user", "", "User name")
 	flag.StringVar(&token, "token", "", "GitHub token")
 	flag.StringVar(&tokenFile, "token-file", "", "Path to the file containing the GitHub token")
+	flag.StringVar(&repoList, "include", "", "List of repos you want stats for eg. 'org/repo1,org/repo2'")
+	flag.StringVar(&reposFile, "include-file", "", "Path to file containing the Github repos list or '-' for stdin")
 
 	flag.BoolVar(&byRepo, "by-repo", false, "Show breakdown by repository")
 
@@ -141,6 +143,11 @@ func main() {
 
 		// break
 		page = res.NextPage
+	}
+
+	allRepos, err = filterRepositories(allRepos, repoList, reposFile)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	allUsage := time.Second * 0
@@ -268,7 +275,6 @@ func main() {
 			totalJobs += len(workflowJobs)
 			log.Printf("%d jobs for workflow run: %d", len(workflowJobs), run.GetID())
 			for _, job := range workflowJobs {
-
 				if !job.GetCompletedAt().IsZero() {
 					dur := job.GetCompletedAt().Time.Sub(job.GetStartedAt().Time)
 					allUsage += dur
@@ -386,4 +392,116 @@ func humanDuration(duration time.Duration) string {
 	}
 
 	return v
+}
+
+func parseInclude(include string) []string {
+	repos := strings.Split(include, ",")
+	for i, repo := range repos {
+		repos[i] = strings.TrimSpace(repo)
+	}
+	return repos
+}
+
+func parseIncludeFromReader(input io.Reader) ([]string, error) {
+	reposBytes, err := io.ReadAll(input)
+	if err != nil {
+		return nil, err
+	}
+
+	lines := strings.Split(string(reposBytes), "\n")
+	repos := make([]string, 0, len(lines))
+	for _, line := range lines {
+		repo := strings.TrimSpace(line)
+
+		if repo != "" {
+			repos = append(repos, repo)
+		}
+	}
+
+	return repos, nil
+}
+
+// getFilter creates a filter map from a comma-separated list of repository names in the
+// format 'user/repo'
+func getFilterMap(repos []string) (map[string]bool, error) {
+	filter := make(map[string]bool)
+
+	for _, repo := range repos {
+		if !strings.Contains(repo, "/") {
+			return nil, fmt.Errorf("invalid repository name format: %q, must be in the format 'user/repo'", repo)
+		}
+		filter[repo] = true
+	}
+
+	return filter, nil
+}
+
+// reduceRepositories takes a list of repositories and a filter map, and returns a filtered list
+// based on the repository names.
+func reduceRepositories(allRepos []*github.Repository, filter map[string]bool) ([]*github.Repository, error) {
+	var filteredRepos []*github.Repository
+
+	for _, repo := range allRepos {
+		name := repo.GetFullName()
+		if filter[name] {
+			filteredRepos = append(filteredRepos, repo)
+		}
+	}
+
+	if len(filteredRepos) == 0 {
+		return nil, fmt.Errorf("no matching repositories found based on the provided filter")
+	}
+
+	return filteredRepos, nil
+}
+
+func filterRepositories(repos []*github.Repository, repoList, reposFile string) ([]*github.Repository, error) {
+	if len(reposFile) > 0 || len(repoList) > 0 {
+		var selectedRepos []string
+
+		if len(repoList) > 0 {
+			reposFromList := parseInclude(repoList)
+			selectedRepos = reposFromList
+		}
+
+		if len(reposFile) > 0 {
+			var input io.Reader
+
+			if reposFile == "-" {
+				stat, _ := os.Stdin.Stat()
+				if (stat.Mode() & os.ModeCharDevice) != 0 {
+					fmt.Fprintf(os.Stderr, "Reading from STDIN - hit (Control + D) to stop.\n")
+				}
+
+				input = os.Stdin
+			} else {
+				file, err := os.Open(reposFile)
+				if err != nil {
+					return nil, err
+				}
+				defer file.Close()
+
+				input = file
+			}
+
+			reposFromFile, err := parseIncludeFromReader(input)
+			if err != nil {
+				return nil, err
+			}
+
+			selectedRepos = append(selectedRepos, reposFromFile...)
+		}
+
+		filter, err := getFilterMap(selectedRepos)
+		if err != nil {
+			return nil, err
+		}
+
+		repos, err = reduceRepositories(repos, filter)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return repos, nil
 }
