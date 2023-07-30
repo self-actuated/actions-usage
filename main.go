@@ -202,7 +202,9 @@ func main() {
 				log.Fatal(err)
 			}
 
-			workflowRuns = append(workflowRuns, runs.WorkflowRuns...)
+			if runs != nil {
+				workflowRuns = append(workflowRuns, runs.WorkflowRuns...)
+			}
 
 			if len(workflowRuns) == 0 {
 				break
