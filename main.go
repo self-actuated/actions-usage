@@ -28,13 +28,14 @@ type RepoSummary struct {
 
 func main() {
 	var (
-		orgName, userName, token, tokenFile, repoList, reposFile string
-		days                                                     int
-		punchCard, byRepo                                        bool
+		orgName, userName, token, tokenFile, repoList, reposFile, apiUrl string
+		days                                                             int
+		punchCard, byRepo                                                bool
 	)
 
 	flag.StringVar(&orgName, "org", "", "Organization name")
 	flag.StringVar(&userName, "user", "", "User name")
+	flag.StringVar(&apiUrl, "apiUrl", "", "Override Github API URL")
 	flag.StringVar(&token, "token", "", "GitHub token")
 	flag.StringVar(&tokenFile, "token-file", "", "Path to the file containing the GitHub token")
 	flag.StringVar(&repoList, "include", "", "List of repos you want stats for eg. 'org/repo1,org/repo2'")
@@ -67,6 +68,13 @@ func main() {
 	}
 
 	client := github.NewClient(auth)
+	if len(apiUrl) > 0 {
+		var err error
+		client, err = github.NewEnterpriseClient(apiUrl, "", auth)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	created := time.Now().AddDate(0, 0, -days)
 	format := "2006-01-02"
 	createdQuery := ">=" + created.Format(format)
@@ -126,7 +134,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		if res.Rate.Remaining == 0 {
+		if res.Rate.Limit > 0 && res.Rate.Remaining == 0 {
 			panic("Rate limit exceeded")
 		}
 
