@@ -243,7 +243,10 @@ func main() {
 					log.Fatal(err)
 				}
 
-				summary := repoSummary[owner+"/"+repo.GetName()]
+				summary, ok := repoSummary[repo.GetFullName()]
+				if !ok {
+					panic(fmt.Sprintf("no summary populated for: %s", repo.GetFullName()))
+				}
 
 				for _, job := range jobs.Jobs {
 					if !job.GetCompletedAt().IsZero() {
