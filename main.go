@@ -178,6 +178,11 @@ func main() {
 			log.Printf("Listing workflow runs for: %s", repo.GetFullName())
 			if orgName != "" {
 				runs, res, err = client.Actions.ListRepositoryWorkflowRuns(ctx, orgName, repo.GetName(), opts)
+				if err != nil {
+					log.Printf("Error getting the workflow runs for: %s", repo.GetFullName())
+					// reset error to prevent stopping the run
+					err = nil
+				}
 			}
 			if userName != "" {
 				realOwner := userName
@@ -186,6 +191,11 @@ func main() {
 					realOwner = *repo.Owner.Login
 				}
 				runs, res, err = client.Actions.ListRepositoryWorkflowRuns(ctx, realOwner, repo.GetName(), opts)
+				if err != nil {
+					log.Printf("Error getting the workflow runs for: %s", repo.GetFullName())
+					// reset error to prevent stopping the run
+					err = nil
+				}
 			}
 
 			if _, ok := repoSummary[repo.GetFullName()]; !ok {
@@ -200,7 +210,9 @@ func main() {
 				log.Fatal(err)
 			}
 
-			workflowRuns = append(workflowRuns, runs.WorkflowRuns...)
+			if runs != nil {
+				workflowRuns = append(workflowRuns, runs.WorkflowRuns...)
+			}
 
 			if len(workflowRuns) == 0 {
 				break
