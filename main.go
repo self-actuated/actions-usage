@@ -12,7 +12,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	units "github.com/docker/go-units"
+	"github.com/docker/go-units"
 
 	"github.com/google/go-github/v50/github"
 	"golang.org/x/oauth2"
@@ -28,9 +28,9 @@ type RepoSummary struct {
 
 func main() {
 	var (
-		orgName, userName, token, tokenFile, repoList, reposFile, apiUrl string
-		days                                                             int
-		punchCard, byRepo                                                bool
+		orgName, userName, token, tokenFile, repoList, reposFile, actionList, apiUrl string
+		days                                                                         int
+		punchCard, byRepo                                                            bool
 	)
 
 	flag.StringVar(&orgName, "org", "", "Organization name")
@@ -40,6 +40,7 @@ func main() {
 	flag.StringVar(&tokenFile, "token-file", "", "Path to the file containing the GitHub token")
 	flag.StringVar(&repoList, "include", "", "List of repos you want stats for eg. 'org/repo1,org/repo2'")
 	flag.StringVar(&reposFile, "include-file", "", "Path to file containing the Github repos list or '-' for stdin")
+	flag.StringVar(&actionList, "include-actions", "", "List of actions you want stats for eg. 'Build")
 
 	flag.BoolVar(&byRepo, "by-repo", false, "Show breakdown by repository")
 
@@ -213,6 +214,7 @@ func main() {
 			page = res.NextPage
 		}
 
+		workflowRuns = actionNameFilter(actionList, workflowRuns)
 		totalRuns += len(workflowRuns)
 
 		var owner string
@@ -515,4 +517,25 @@ func filterRepositories(repos []*github.Repository, repoList, reposFile string) 
 	}
 
 	return repos, nil
+}
+
+func actionNameFilter(actionList string, runs []*github.WorkflowRun) []*github.WorkflowRun {
+	if len(actionList) == 0 {
+		return runs
+	}
+
+	actionsFromList := parseInclude(actionList)
+	byName := make(map[string]bool, len(actionsFromList))
+	for _, name := range actionsFromList {
+		byName[name] = true
+	}
+
+	var filtered []*github.WorkflowRun
+	for _, run := range runs {
+		if run.Name != nil && byName[*run.Name] {
+			filtered = append(filtered, run)
+		}
+	}
+
+	return filtered
 }
