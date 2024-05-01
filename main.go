@@ -14,7 +14,7 @@ import (
 
 	units "github.com/docker/go-units"
 
-	"github.com/google/go-github/v50/github"
+	"github.com/google/go-github/v61/github"
 	"golang.org/x/oauth2"
 )
 
